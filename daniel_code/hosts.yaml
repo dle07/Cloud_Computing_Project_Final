@@ -1,0 +1,33 @@
+
+# Local Putty Key C:/Users/danie/.ssh/id_geni_ssh_rsa.ppk
+# Local Rsa Key: C:/Users/danie/.ssh/id_geni_ssh_rsa
+key_cred:
+    putty_key: /users/daniel05/.ssh/id_geni_ssh_rsa.ppk #C:/Users/danie/.ssh/id_geni_ssh_rsa.ppk   This putty key needs to be in every VM      
+    controller_rsa_ssh_key_path: /users/daniel05/.ssh/id_geni_ssh_rsa #C:/Users/danie/.ssh/id_geni_ssh_rsa  # C:/Users/danie/.ssh/id_geni_ssh_rsa 
+    passphrase: 12345
+
+vm_pool:  # List of vms to choose from
+    - vm1
+    - vm2
+    - vm3
+
+vms:
+    vm1:
+        host: pc5.geni.it.cornell.edu
+        user: daniel05
+        port: 25010
+    vm2: 
+        user: daniel05
+        host: pc1.geni.it.cornell.edu
+        port: 25014
+    vm3:  #daniel05@pc3.geni.it.cornell.edu -p 25010
+        user: daniel05
+        host: pc3.geni.it.cornell.edu
+        port: 25010
+
+
+Dummy_VM:
+    user: daniel05
+    host: pc2.instageni.rnet.missouri.edu
+    port: 25610
+
