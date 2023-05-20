@@ -5,8 +5,6 @@ import yaml
 from pprint import pprint
 import random
 from datetime import timedelta
-
-
 from os.path import isfile
 
 
@@ -25,8 +23,7 @@ class Migrator:
         self.dummy_vm = None
         self.datapath:str = None
 
-
-        with open("./hosts.yaml", 'r') as file:
+        with open("./test_hosts.yaml", 'r') as file:
             yaml_file = yaml.safe_load(file)
             self.yaml_file = yaml_file
         
@@ -50,8 +47,6 @@ class Migrator:
         client = paramiko.SSHClient()
         key = paramiko.RSAKey.from_private_key_file( filename = self.key_cred["controller_rsa_ssh_key_path"],password= str(self.key_cred["passphrase"]))
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        #client.connect(hostname= host2["host"],pkey=key ,username=host2["user"], port=25613)
-
         client.connect( hostname=host_dict["host"],username=host_dict["user"], pkey = key,
                         port=host_dict["port"],
                         )
@@ -66,44 +61,34 @@ class Migrator:
         """
         current_vm_host_name = self.current_host
         current_vm_info = self.vms[self.current_host]
-
-        # next_vm_host_name = self.chooseNextVM()
-        next_vm_host_name = "vm2"
+        next_vm_host_name = self.chooseNextVM()
         next_vm_info = self.vms[next_vm_host_name]
         print("Migrating from {} ----> {}".format(current_vm_host_name, next_vm_host_name))
-        print("Previous Host {} ----> Next Host {}".format(current_vm_info, next_vm_info ))
 
-        print(isfile(self.key_cred["putty_key"]))
-        print(isfile(self.key_cred["controller_rsa_ssh_key_path"]))
+        # print(isfile(self.key_cred["putty_key"]))
+        # print(isfile(self.key_cred["controller_rsa_ssh_key_path"]))
     
         file_path = "/var/www/html/video1.mp4"  # Local and Target host file path because they share the same paths
-        host_dst = "{user}@{host}:{path}".format(user=next_vm_info["user"], host=next_vm_info["host"],path=file_path)
+        dest_path = "/var/www/html/"
+        host_dst = "{user}@{host}:{path}".format(user=next_vm_info["user"], host=next_vm_info["host"],path=dest_path)
         #pscp -batch -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 25014 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
-        pscp_command = "pscp -batch -i {ppk_key} -pw {passphrase} -P {dst_port} {source} {host_dst}".format(
+        pscp_command = "pscp -v -batch -i {ppk_key} -pw {passphrase} -P {dst_port} {source} {host_dst}".format(
             ppk_key = self.key_cred["putty_key"],
             passphrase = self.key_cred["passphrase"],
             dst_port = next_vm_info["port"],
             source = file_path,
             host_dst = host_dst
-
         )
+        logging.log(1,pscp_command)
 
         host_client = self.getClient(current_vm_info)
         self.execute_commands(host_client,[
                                             pscp_command,
+                                            "cd /var/www/html/video1.mp4",
+                                            "ls",
                                             "sudo rm {}".format(file_path)])
 
-        # rm_command =f"""sudo rm /var/www/html/video1.mp4"""
-        # commands = [
-        #     "cd ../../",
-        #     "ls"
-        #     # scp_command, 
-        #     # key_cred["passphrase"],
-        #     #rm_command
-        # ]
-        # execute_commands(host_src_client, commands=commands)
-        # host_src_client.close()  #Close the client
-        print("Migrated From {} ---> {}".format(current_vm_host_name, next_vm_host_name))
+
 
         self.current_host = next_vm_host_name
         return (next_vm_host_name, next_vm_info)
@@ -134,27 +119,14 @@ class Migrator:
 # /var/www/html/
 
 
-
-
-# migrator = Migrator()
-# for i in range(10):
-#     migrator.migrate()
-
-
-#migrate(host_src=vm1, host_dst=vm2)
-
-# client = getClient(vm1)
-# stdin, stdout, stderr = client.exec_command("pscp -batch -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 25014 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt")
-# print(stdout.read())
-# client.close()
-
-
-
-
-# client = paramiko.client.SSHClient()
-# client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-# client.connect(host, username=username, password=password)
-# _stdin, _stdout,_stderr = client.exec_command("df")
-# print(_stdout.read().decode())
-# client.close()  # close client
+# rm_command =f"""sudo rm /var/www/html/video1.mp4"""
+# commands = [
+#     "cd ../../",
+#     "ls"
+#     # scp_command, 
+#     # key_cred["passphrase"],
+#     #rm_command
+# ]
+# execute_commands(host_src_client, commands=commands)
+# host_src_client.close()  #Close the client
 

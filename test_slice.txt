@@ -1,0 +1,44 @@
+
+vm1
+daniel05@pc1.geni.it.cornell.edu:26213
+vm2
+# daniel05@pc1.geni.it.cornell.edu:26214
+vm3
+#daniel05@pc1.geni.it.cornell.edu:26215
+dummy
+
+controller
+daniel05@pcvm2-10.geni.it.cornell.edu
+192.122.236.116
+
+TO VM1
+pscp -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 26213 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
+
+TO VM2
+pscp -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 26214 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
+
+TO VM3
+pscp -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 26215 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
+
+chmod 600 id_geni_ssh_rsa.ppk
+
+
+Code File --> test_controller
+
+scp -i C:/Users/danie/.ssh/id_geni_ssh_rsa -P 22 -r '/c/Users/danie/OneDrive/Desktop/Hunter Course Work/Cloud Computing/project/daniel_code' daniel05@pcvm2-10.geni.it.cornell.edu:/tmp/
+
+
+SCP Command To Transfer Video to Host 1
+scp -i /c/Users/danie/.ssh/id_geni_ssh_rsa -P 26213 '/c/Users/danie/OneDrive/Desktop/Hunter Course Work/Cloud Computing/labs/1_lab/video1.mp4' daniel05@pc1.geni.it.cornell.edu:/var/www/html/video1.mp4 
+
+
+
+Transfer keys
+
+
+scp -i /c/Users/danie/.ssh/id_geni_ssh_rsa -P 26215 '/c/Users/danie/.ssh/id_geni_ssh_rsa.ppk' daniel05@pc1.geni.it.cornell.edu:/users/daniel05/.ssh/ 
+
+
+key to controller
+
+scp -i /c/Users/danie/.ssh/id_geni_ssh_rsa -P 22 '/c/Users/danie/.ssh/id_geni_ssh_rsa.ppk' daniel05@pcvm2-10.geni.it.cornell.edu:/users/daniel05/.ssh/

@@ -21,7 +21,6 @@ from ryu.ofproto import ofproto_v1_3
 from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet, ipv4
 from ryu.lib.packet import ether_types
-from timeloop import Timeloop
 import paramiko
 from datetime import timedelta
 from ProactiveMigration import Migrator
@@ -29,7 +28,7 @@ import threading
 import time
 from threading import Thread
 from time import sleep
-
+import yaml
 
 
 
@@ -46,9 +45,9 @@ from time import sleep
 """  
 
 
-KNOWN_HOST = {}
 
-global_addr = "10.10.10.1"
+
+
 
 # def background_task():
 #     while True:
@@ -65,29 +64,67 @@ class SimpleSwitch13(app_manager.RyuApp):
 
     def __init__(self, *args, **kwargs):
         super(SimpleSwitch13, self).__init__(*args, **kwargs)
-        self.mac_to_port = {
-
-        }
+        self.mac_to_port = {}
+        with open("./test_hosts.yaml", 'r') as file:
+            yaml_file = yaml.safe_load(file)
+            self.yaml_file = yaml_file
+        
+            self.key_cred = yaml_file["key_cred"]
+            self.vm_pool_list = yaml_file["vm_pool"]
+            self.vms = yaml_file["vms"]   # VMS
+            self.dummy_vm = yaml_file["Dummy_VM"]
+            self.vm_ips = [self.vms[key]["local_ip"] for key in self.vms.keys()]
+        self.datapath= None
+        self.parser = None
         self.migrator=Migrator()
-        self.periodic_migrator_daemon = Thread(target=self.background_task, args=(), daemon=True, name='Background')
+        self.periodic_migrator_daemon = Thread(target=self.periodically_migrate, args=(), daemon=True, name='Background')
         self.periodic_migrator_daemon.start()
+        print("DONE DONE DONE")
+
     
     
     def periodically_migrate(self,):
         while True:
-            sleep(45)
-            
-            self.migrator.migrate()
-            
-            print(time.ctime())
+            sleep(30)
+            print("MIGRATING AT.....{}".format(time.ctime()))
+            self.migrator.migrate()  # 
+            self.update_redirection_rules()
+            print("\n\n\n")
 
-            
-    def update_redirection_rules(vm:str):
-        pass
+    def proactively_migrate(self,):
+        self.migrator.migrate()
+        self.update_redirection_rules()
+
+    #Priority = 5        
+    def update_redirection_rules(self,):
+        current_vm = self.migrator.getCurrentHost()
+        print(self.parser, self.datapata)
+        parser = self.parser
+        action_modify_headers = [
+            parser.OFPActionSetField(eth_dst=self.vms[current_vm]["mac"]),
+            parser.OFPActionSetField(ipv4_dst=self.vms[current_vm]["local_ip"]),
+            parser.OFPActionOutput(self.vms[current_vm]["ovs_port"])   # send to port directed to dummy_vm
+        ]
+
+        for vm_ip in self.vm_ips:
+            match = parser.OFPMatch(eth_type=0x0800,ipv4_dst=str(vm_ip))
+            self.add_flow(self.datapata,5, match, action_modify_headers)
+        return
         
-    def black_list_ip(ip_addr:str):
-        #Add rule to redirct source ip addr to dummy port
-        pass
+    #Priority = 10
+    def black_list_ip(self, ip_addr:str):
+        current_vm = self.migrator.getCurrentHost()
+        parser = self.parser
+        match = parser.OFPMatch(eth_type=0x0800, ipv4_src = str(ip_addr))
+
+        action_modify_headers = [
+            parser.OFPActionSetField(eth_dst=self.dummy_vm["mac"]),
+            parser.OFPActionSetField(ipv4_dst=self.dummy_vm["local_ip"]),
+            parser.OFPActionOutput(self.dummy_vm["ovs_port"])   # send to port directed to dummy_vm
+        ]
+        self.add_flow(self.datapata, 10, match,action_modify_headers)
+        return
+
 
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
@@ -95,7 +132,8 @@ class SimpleSwitch13(app_manager.RyuApp):
         datapath = ev.msg.datapath
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
-
+        self.datapata=datapath
+        self.parser = parser
         # install table-miss flow entry
         #
         # We specify NO BUFFER to max_len of the output action due to
@@ -107,6 +145,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
                                           ofproto.OFPCML_NO_BUFFER)]
         self.add_flow(datapath, 0, match, actions)
+        self.update_redirection_rules()
 
     def add_flow(self, datapath, priority, match, actions, buffer_id=None):
         ofproto = datapath.ofproto
@@ -125,6 +164,7 @@ class SimpleSwitch13(app_manager.RyuApp):
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
+        
         # If you hit this you might want to increase
         # the "miss_send_length" of your switch
         if ev.msg.msg_len < ev.msg.total_len:
@@ -135,8 +175,8 @@ class SimpleSwitch13(app_manager.RyuApp):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
         in_port = msg.match['in_port']
+
         pkt = packet.Packet(msg.data)
-        ip_pkt = pkt.get_protocol(ipv4.ipv4)
         eth = pkt.get_protocols(ethernet.ethernet)[0]
 
         if eth.ethertype == ether_types.ETH_TYPE_LLDP:
@@ -146,38 +186,19 @@ class SimpleSwitch13(app_manager.RyuApp):
         src = eth.src
 
         dpid = format(datapath.id, "d").zfill(16)
+        self.mac_to_port.setdefault(dpid, {})
 
-        # self.logger.info("packet in %s %s %s %s", dpid, src, dst, in_port)
-        # if (ip_pkt and ip_pkt.dst == global_addr):   # Traffic directed to 
-        #     print("{} --->{}".format(ip_pkt.src,ip_pkt.dst))
-        #     #modify packet header
+        self.logger.info("packet in %s %s %s %s", dpid, src, dst, in_port)
 
-        #     match1 = parser.OFPMatch(eth_type=0x0800, ipv4_dst = global_addr)
+        # learn a mac address to avoid FLOOD next time.
+        self.mac_to_port[dpid][src] = in_port
 
-        #     actions_modify_headers = [
-        #         parser.OFPActionSetField(eth_dst=KNOWN_HOSTS["dummy_vm"]["mac"]),
-        #         parser.OFPActionSetField(ipv4_dst=KNOWN_HOSTS["dummy_vm"]["local_ip"]),
-        #         parser.OFPActionOutput(KNOWN_HOSTS["dummy_vm"]["port"])]   # send to port directed to dummy_vm
-
-        #     self.add_flow(datapath, 1, match1, actions_modify_headers)
-
-        #     out = parser.OFPPacketOut(datapath=datapath,
-        #                                 buffer_id=msg.buffer_id,
-        #                                 in_port=msg.in_port
-        #                                 , actions=actions,
-        #                                 data=data)
-        #     datapath.send_msg(out)
-        #     return
-
-        self.mac_to_port[src] = in_port
-
-        if dst in self.mac_to_port:
-            out_port = self.mac_to_port[dst]
+        if dst in self.mac_to_port[dpid]:
+            out_port = self.mac_to_port[dpid][dst]
         else:
             out_port = ofproto.OFPP_FLOOD
 
         actions = [parser.OFPActionOutput(out_port)]
-
         # install a flow to avoid packet_in next time
         if out_port != ofproto.OFPP_FLOOD:
             match = parser.OFPMatch(in_port=in_port, eth_dst=dst, eth_src=src)
@@ -198,3 +219,25 @@ class SimpleSwitch13(app_manager.RyuApp):
 
 
 
+# if (ip_pkt and ip_pkt.dst == global_addr):   # Traffic directed to 
+        #     print("{} --->{}".format(ip_pkt.src,ip_pkt.dst))
+        #     #modify packet header
+
+        #     match1 = parser.OFPMatch(eth_type=0x0800, ipv4_dst = global_addr)
+
+        #     actions_modify_headers = [
+        #         parser.OFPActionSetField(eth_dst=KNOWN_HOSTS["dummy_vm"]["mac"]),
+        #         parser.OFPActionSetField(ipv4_dst=KNOWN_HOSTS["dummy_vm"]["local_ip"]),
+        #         parser.OFPActionOutput(KNOWN_HOSTS["dummy_vm"]["port"])]   # send to port directed to dummy_vm
+
+        #     self.add_flow(datapath, 1, match1, actions_modify_headers)
+
+        #     out = parser.OFPPacketOut(datapath=datapath,
+        #                                 buffer_id=msg.buffer_id,
+        #                                 in_port=msg.in_port
+        #                                 , actions=actions,
+        #                                 data=data)
+        #     datapath.send_msg(out)
+        #     return
+
+        

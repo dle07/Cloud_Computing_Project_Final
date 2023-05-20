@@ -3,13 +3,28 @@ Shared Slice
 /tmp/ryu/daniel_code
 12345
 
+To VM1
+pscp -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 25010 /var/www/html/test.txt daniel05@pc5.geni.it.cornell.edu:/var/www/html/test.txt
+
+TO VM2
+pscp -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 25014 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
+
+TO VM3
+pscp  -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 25010 /var/www/html/test.txt daniel05@pc3.geni.it.cornell.edu:/var/www/html/test.txt
+
+
+pscp  -batch -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 25010 /var/www/html/test.txt daniel05@pc3.geni.it.cornell.edu:/var/www/html/test.txt
+
+Upload Code Changes to Controller
 scp -i C:/Users/danie/.ssh/id_geni_ssh_rsa -P 22 -r '/c/Users/danie/OneDrive/Desktop/Hunter Course Work/Cloud Computing/project/daniel_code' daniel05@pcvm2-6.genirack.nyu.edu:/tmp/ryu/
 
 
 SCP Command To Transfer Video to Host 1
-scp -i /c/Users/danie/.ssh/id_geni_ssh_rsa -P 25612 '/c/Users/danie/OneDrive/Desktop/Hunter Course Work/Cloud Computing/labs/1_lab/video1.mp4' daniel05@pc2.instageni.rnet.missouri.edu:/var/www/html/video1.mp4 
+scp -i /c/Users/danie/.ssh/id_geni_ssh_rsa -P 25010 '/c/Users/danie/OneDrive/Desktop/Hunter Course Work/Cloud Computing/labs/1_lab/video1.mp4' daniel05@pc5.geni.it.cornell.edu:/var/www/html/video1.mp4 
 
 
+scp -i /c/Users/danie/.ssh/id_geni_ssh_rsa -P 25010 '/c/Users/danie/OneDrive/Desktop/Hunter Course Work/Cloud Computing/labs/1_lab/video1.mp4' daniel05@pc3.geni.it.cornell.edu:/var/www/html/video1.mp4 
+12345
 VM1
 daniel05@pc5.geni.it.cornell.edu -p 25010
 

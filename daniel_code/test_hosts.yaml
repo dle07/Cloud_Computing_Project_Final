@@ -1,0 +1,64 @@
+
+
+# eth1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+#         ether 02:3f:31:a0:90:26  txqueuelen 1000  (Ethernet)
+# eth2: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+#         ether 02:9f:d8:f2:1a:05  txqueuelen 1000  (Ethernet)
+# eth3: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+#         ether 02:b4:ff:6b:64:6d  txqueuelen 1000  (Ethernet)
+# eth4: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+#         ether 02:e3:60:c8:56:c8  txqueuelen 1000  (Ethernet)
+# eth5: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+#         ether 02:5f:7e:4a:ba:ba  txqueuelen 1000  (Ethernet)
+
+# VM1 eth5
+# VM2 eth2
+# VM3 eth3
+# DUMMY_VM eth4
+# client  eth1
+
+
+
+
+
+key_cred:
+    putty_key: /users/daniel05/.ssh/id_geni_ssh_rsa.ppk #C:/Users/danie/.ssh/id_geni_ssh_rsa.ppk   This putty key needs to be in every VM      
+    controller_rsa_ssh_key_path: /users/daniel05/.ssh/id_geni_ssh_rsa #C:/Users/danie/.ssh/id_geni_ssh_rsa  # C:/Users/danie/.ssh/id_geni_ssh_rsa 
+    passphrase: 12345
+
+vm_pool:  # List of vms to choose from
+    - vm1
+    - vm2
+    - vm3
+
+vms:
+    vm1:   #daniel05@pc1.geni.it.cornell.edu:26213
+        host: pc1.geni.it.cornell.edu
+        user: daniel05
+        port: 26213
+        ovs_port: 5             # ovs bridge port to vm
+        local_ip: 10.10.1.2
+        mac: 1312312321312
+    vm2:    # daniel05@pc1.geni.it.cornell.edu:26214
+        user: daniel05
+        host: pc1.geni.it.cornell.edu
+        port: 26214
+        ovs_port: 2
+        local_ip: 10.10.2.1
+        mac: 12312312321312
+    vm3:  #daniel05@pc1.geni.it.cornell.edu:26215
+        user: daniel05
+        host: pc1.geni.it.cornell.edu
+        port: 26215
+        ovs_port: 3
+        local_ip: 10.10.3.1
+        mac: 23123123123123
+
+
+Dummy_VM:   # daniel05@pc1.geni.it.cornell.edu:26211
+    user: daniel05  
+    host: pc1.geni.it.cornell.edu
+    port: 26211
+    ovs_port: 4
+    local_ip: 10.10.4.1
+    mac: 414121223121
