@@ -1,22 +1,19 @@
 from typing import List, Dict
 import paramiko 
 import logging
-from scp import SCPClient
-from subprocess import Popen
 import yaml
 from pprint import pprint
 import random
-import time
-from timeloop import Timeloop
 from datetime import timedelta
 
 
 from os.path import isfile
-tl = Timeloop()
+
 
 #Controller will know "Current Host" by calling a get Function from the Migrator class
 
 class Migrator:
+    
     def __init__(self,):
 
         self.current_host = "vm1"  # Let's always upon boot start at vm1
@@ -26,6 +23,7 @@ class Migrator:
         self.vms:dict = None  # {vm_name :{VM_INFO}}
         self.key_cred:dict = None
         self.dummy_vm = None
+        self.datapath:str = None
 
 
         with open("./hosts.yaml", 'r') as file:
@@ -59,7 +57,6 @@ class Migrator:
                         )
         return client   #client.close()
     
-    @tl.job(interval = timedelta(seconds=30))
     def migrate(self,): # Host Source, Host Destination
         """
         1) SSH to current host
@@ -79,7 +76,7 @@ class Migrator:
         print(isfile(self.key_cred["putty_key"]))
         print(isfile(self.key_cred["controller_rsa_ssh_key_path"]))
     
-        file_path = "/var/www/html/test.txt"  # Local and Target host file path because they share the same paths
+        file_path = "/var/www/html/video1.mp4"  # Local and Target host file path because they share the same paths
         host_dst = "{user}@{host}:{path}".format(user=next_vm_info["user"], host=next_vm_info["host"],path=file_path)
         #pscp -batch -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 25014 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
         pscp_command = "pscp -batch -i {ppk_key} -pw {passphrase} -P {dst_port} {source} {host_dst}".format(
@@ -90,12 +87,11 @@ class Migrator:
             host_dst = host_dst
 
         )
-        
-
-
 
         host_client = self.getClient(current_vm_info)
-        self.execute_commands(host_client,[pscp_command])
+        self.execute_commands(host_client,[
+                                            pscp_command,
+                                            "sudo rm {}".format(file_path)])
 
         # rm_command =f"""sudo rm /var/www/html/video1.mp4"""
         # commands = [
@@ -113,7 +109,6 @@ class Migrator:
         return (next_vm_host_name, next_vm_info)
 
     def execute_commands(self,client, commands: List[str]):
-        
         for cmd in commands:
             stdin, stdout, stderr = client.exec_command(cmd)
             stdout.channel.recv_exit_status()
@@ -130,8 +125,6 @@ class Migrator:
 
 
 
-migrator = Migrator()
-migrator.migrate()
 
 
 # print(isfile("/c/Users/danie/.ssh/test.txt"))
