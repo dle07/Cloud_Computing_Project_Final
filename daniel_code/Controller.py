@@ -58,6 +58,8 @@ import yaml
 
 # Proactive migration
 # Use paramiko to ssh, move files, delete 
+
+ovs_ip = "10.10.1.100"
 class SimpleSwitch13(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
     
@@ -79,9 +81,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         self.migrator=Migrator()
         self.periodic_migrator_daemon = Thread(target=self.periodically_migrate, args=(), daemon=True, name='Background')
         self.periodic_migrator_daemon.start()
-
-    
-    
+     
     def periodically_migrate(self,):
         while True:
             sleep(30)
@@ -103,10 +103,21 @@ class SimpleSwitch13(app_manager.RyuApp):
             parser.OFPActionSetField(ipv4_dst=self.vms[current_vm]["local_ip"]),
             parser.OFPActionOutput(self.vms[current_vm]["ovs_port"])   # send to port directed to dummy_vm
         ]
-
+        action_modify_headers_reverse = [
+            parser.OFPActionSetField(eth_src=self.vms[current_vm]["mac"]),
+            parser.OFPActionSetField(ipv4_src=self.vms[current_vm]["local_ip"]),
+            parser.OFPActionOutput(ofproto_v1_3.OFPP_IN_PORT)   # send to port directed to dummy_vm
+        ]
+        """
+        Rules to 
+        any packet coming from redirected source 
+        """
         for vm_ip in self.vm_ips:
-            match = parser.OFPMatch(eth_type=0x0800,ipv4_dst=str(vm_ip))
-            self.add_flow(self.datapata,1, match, action_modify_headers)
+            match = parser.OFPMatch(eth_type=0x0800,ipv4_dst=ovs_ip)
+            reverse_match = parser.OFPMatch(eth_type=0x0800,ipv4_src=self.vms[current_vm]["local_ip"])
+            self.add_flow(self.datapata,5, match, action_modify_headers)
+            self.add_flow(self.datapata,5, reverse_match, action_modify_headers_reverse)
+
         return
         
     #Priority = 10
@@ -130,6 +141,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         datapath = ev.msg.datapath
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
+        self.ofproto = ofproto
         self.datapata=datapath
         self.parser = parser
         # install table-miss flow entry
@@ -139,9 +151,9 @@ class SimpleSwitch13(app_manager.RyuApp):
         # 128, OVS will send Packet-In with invalid buffer_id and
         # truncated packet data. In that case, we cannot output packets
         # correctly.  The bug has been fixed in OVS v2.1.0.
+        
         match = parser.OFPMatch()
-        actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                          ofproto.OFPCML_NO_BUFFER)]
+        actions = [parser.OFPActionOutput(ofproto.OFPP_NORMAL)]
         self.add_flow(datapath, 0, match, actions)
         self.update_redirection_rules()
 
