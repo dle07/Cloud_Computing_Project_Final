@@ -4,10 +4,10 @@ Shared Slice
 12345
 
 To VM1
-pscp -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 25010 /var/www/html/test.txt daniel05@pc5.geni.it.cornell.edu:/var/www/html/test.txt
+pscp  -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 25010 /var/www/html/test.txt daniel05@pc5.geni.it.cornell.edu:/var/www/html/test.txt
 
 TO VM2
-pscp -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 25014 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
+pscp  -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 25014 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
 
 TO VM3
 pscp  -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 25010 /var/www/html/test.txt daniel05@pc3.geni.it.cornell.edu:/var/www/html/test.txt

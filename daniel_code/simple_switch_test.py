@@ -65,7 +65,7 @@ class SimpleSwitch13(app_manager.RyuApp):
     def __init__(self, *args, **kwargs):
         super(SimpleSwitch13, self).__init__(*args, **kwargs)
         self.mac_to_port = {}
-        with open("./test_hosts.yaml", 'r') as file:
+        with open("./hosts.yaml", 'r') as file:
             yaml_file = yaml.safe_load(file)
             self.yaml_file = yaml_file
         
@@ -79,7 +79,6 @@ class SimpleSwitch13(app_manager.RyuApp):
         self.migrator=Migrator()
         self.periodic_migrator_daemon = Thread(target=self.periodically_migrate, args=(), daemon=True, name='Background')
         self.periodic_migrator_daemon.start()
-        print("DONE DONE DONE")
 
     
     
@@ -98,7 +97,6 @@ class SimpleSwitch13(app_manager.RyuApp):
     #Priority = 5        
     def update_redirection_rules(self,):
         current_vm = self.migrator.getCurrentHost()
-        print(self.parser, self.datapata)
         parser = self.parser
         action_modify_headers = [
             parser.OFPActionSetField(eth_dst=self.vms[current_vm]["mac"]),
@@ -108,7 +106,7 @@ class SimpleSwitch13(app_manager.RyuApp):
 
         for vm_ip in self.vm_ips:
             match = parser.OFPMatch(eth_type=0x0800,ipv4_dst=str(vm_ip))
-            self.add_flow(self.datapata,5, match, action_modify_headers)
+            self.add_flow(self.datapata,1, match, action_modify_headers)
         return
         
     #Priority = 10

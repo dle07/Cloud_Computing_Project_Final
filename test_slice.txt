@@ -12,13 +12,13 @@ daniel05@pcvm2-10.geni.it.cornell.edu
 192.122.236.116
 
 TO VM1
-pscp -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 26213 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
+pscp  -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 26213 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
 
 TO VM2
-pscp -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 26214 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
+pscp  -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 26214 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
 
 TO VM3
-pscp -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 26215 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
+pscp  -v -i /users/daniel05/.ssh/id_geni_ssh_rsa.ppk -pw 12345 -P 26215 /var/www/html/test.txt daniel05@pc1.geni.it.cornell.edu:/var/www/html/test.txt
 
 chmod 600 id_geni_ssh_rsa.ppk
 

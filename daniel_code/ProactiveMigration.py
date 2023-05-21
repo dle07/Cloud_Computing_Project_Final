@@ -23,7 +23,7 @@ class Migrator:
         self.dummy_vm = None
         self.datapath:str = None
 
-        with open("./test_hosts.yaml", 'r') as file:
+        with open("./hosts.yaml", 'r') as file:
             yaml_file = yaml.safe_load(file)
             self.yaml_file = yaml_file
         

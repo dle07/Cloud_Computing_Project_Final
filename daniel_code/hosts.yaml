@@ -33,18 +33,21 @@ vms:
         port: 25010
         ovs_port: 3             # ovs bridge port to vm
         local_ip: 10.10.1.1
+        mac: 02:86:76:de:c7:db
     vm2: 
         user: daniel05
         host: pc1.geni.it.cornell.edu
         port: 25014
         ovs_port: 7
         local_ip: 10.10.1.2
+        mac: 02:09:9e:7d:f1:c4
     vm3:  #daniel05@pc3.geni.it.cornell.edu -p 25010
         user: daniel05
         host: pc3.geni.it.cornell.edu
         port: 25010
         ovs_port: 5
         local_ip: 10.10.1.3
+        mac: 02:0f:9d:0c:4f:27 
 
 
 Dummy_VM:
@@ -53,4 +56,5 @@ Dummy_VM:
     port: 25610
     ovs_port: 6
     local_ip: 10.10.1.4
+    mac: 02:83:3d:8f:e8:da 
 
